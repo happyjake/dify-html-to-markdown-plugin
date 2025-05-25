@@ -6,7 +6,7 @@ label:
   en_US: "HTML to Markdown Converter"
   zh_Hans: "HTML转Markdown转换器"
 created_at: "2024-12-21T12:00:00Z"
-icon: "icon.svg"
+icon: "_assets/icon.svg"
 description:
   en_US: "Convert HTML content to markdown using different conversion methods (Trafilatura, Markdownify, html2text, Pandoc)"
   zh_Hans: "使用不同转换方法将HTML内容转换为Markdown (Trafilatura, Markdownify, html2text, Pandoc)"
@@ -20,7 +20,7 @@ resource:
       size: 10485760 # 10MB
 plugins:
   tools:
-    - "html_markdown_converter.yaml"
+    - "provider/html_markdown_converter.yaml"
 meta:
   version: 0.1.0
   arch:

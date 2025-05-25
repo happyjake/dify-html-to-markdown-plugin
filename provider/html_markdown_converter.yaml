@@ -7,7 +7,7 @@ identity:
   description:
     en_US: Convert HTML content to markdown using different conversion libraries
     zh_Hans: 使用不同转换库将HTML内容转换为Markdown
-  icon: converter_icon.svg
+  icon: icon.svg
   tags:
     - utilities
     - conversion
@@ -20,4 +20,4 @@ tools:
 
 extra:
   python:
-    source: html_markdown_converter.py
+    source: provider/html_markdown_converter.py

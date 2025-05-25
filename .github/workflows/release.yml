@@ -43,32 +43,18 @@ jobs:
         print(f'Plugin: {manifest[\"name\"]} v{manifest[\"version\"]}')
         "
 
+    - name: Install Dify Plugin CLI
+      run: |
+        # Download the Dify plugin CLI tool for Linux
+        curl -L https://github.com/langgenius/dify-plugin-daemon/releases/latest/download/dify-plugin-daemon-linux-amd64 -o dify-plugin
+        chmod +x dify-plugin
+        # Verify installation
+        ./dify-plugin version
+
     - name: Create plugin package
       run: |
-        # Create a temporary directory for the plugin
-        mkdir -p plugin_package
-        
-        # Copy all necessary files
-        cp *.py plugin_package/
-        cp *.yaml plugin_package/
-        cp requirements.txt plugin_package/
-        cp README.md plugin_package/
-        cp PRIVACY.md plugin_package/
-        
-        # Copy tools directory if it exists
-        if [ -d "tools" ]; then
-          cp -r tools plugin_package/
-        fi
-        
-        # Copy assets directory if it exists
-        if [ -d "_assets" ]; then
-          cp -r _assets plugin_package/
-        fi
-        
-        # Create the plugin zip
-        cd plugin_package
-        zip -r ../html-to-markdown-plugin.zip .
-        cd ..
+        # Use the official Dify plugin CLI to create a proper .difypkg file
+        ./dify-plugin plugin package .
 
     - name: Get version
       id: version
@@ -112,9 +98,9 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./html-to-markdown-plugin.zip
-        asset_name: html-to-markdown-plugin-${{ steps.version.outputs.version }}.zip
-        asset_content_type: application/zip
+        asset_path: ./html-to-markdown-plugin.difypkg
+        asset_name: html-to-markdown-plugin-${{ steps.version.outputs.version }}.difypkg
+        asset_content_type: application/octet-stream
 
   docker:
     runs-on: ubuntu-latest
