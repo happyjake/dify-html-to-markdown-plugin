@@ -45,16 +45,24 @@ jobs:
 
     - name: Install Dify Plugin CLI
       run: |
-        # Download the Dify plugin CLI tool for Linux
-        curl -L https://github.com/langgenius/dify-plugin-daemon/releases/latest/download/dify-plugin-daemon-linux-amd64 -o dify-plugin
-        chmod +x dify-plugin
+        # Install Dify CLI using the latest binary release
+        curl -L https://github.com/langgenius/dify-plugin-daemon/releases/latest/download/dify-plugin-linux-amd64 -o dify
+        chmod +x dify
+        # Move to system path for easier access
+        sudo mv dify /usr/local/bin/
         # Verify installation
-        ./dify-plugin version
+        dify version
 
     - name: Create plugin package
       run: |
         # Use the official Dify plugin CLI to create a proper .difypkg file
-        ./dify-plugin plugin package .
+        # Must run from parent directory
+        cd ..
+        dify plugin package ./dify-html-to-markdown-plugin
+        # The CLI should generate a .difypkg file automatically
+        ls -la *.difypkg
+        # Move the generated file back to the original directory
+        mv *.difypkg ./dify-html-to-markdown-plugin/
 
     - name: Get version
       id: version
@@ -98,8 +106,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./html-to-markdown-plugin.difypkg
-        asset_name: html-to-markdown-plugin-${{ steps.version.outputs.version }}.difypkg
+        asset_path: ./html-to-markdown.difypkg
+        asset_name: html-to-markdown-${{ steps.version.outputs.version }}.difypkg
         asset_content_type: application/octet-stream
 
   docker:
