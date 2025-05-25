@@ -9,4 +9,4 @@ class HtmlMarkdownConverterProvider(ToolProvider):
         Validate the credentials for the HTML to Markdown converter.
         Since this tool doesn't require any credentials, this is a no-op.
         """
-        pass 
+        pass

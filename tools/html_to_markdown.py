@@ -279,7 +279,7 @@ class HtmlToMarkdownTool(Tool):
                 # Clean up temporary file even if pandoc fails
                 try:
                     os.unlink(temp_file_path)
-                except:
+                except OSError:
                     pass
 
                 # Fallback to basic text extraction

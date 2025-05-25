@@ -12,11 +12,11 @@ sys.path.insert(0, ".")
 def test_imports():
     """Test that all required modules can be imported"""
     try:
-        import html2text
-        import markdownify
-        import pypandoc
-        import trafilatura
-        from bs4 import BeautifulSoup
+        import html2text  # noqa: F401
+        import markdownify  # noqa: F401
+        import pypandoc  # noqa: F401
+        import trafilatura  # noqa: F401
+        from bs4 import BeautifulSoup  # noqa: F401
 
         print("✅ All dependencies imported successfully")
         return True
@@ -71,8 +71,8 @@ def test_tool_classes():
         html_markdown_converter.ToolProvider = MockToolProvider
 
         # Test instantiation
-        tool = HtmlToMarkdownTool()
-        provider = HtmlMarkdownConverterProvider()
+        tool = HtmlToMarkdownTool()  # noqa: F841
+        provider = HtmlMarkdownConverterProvider()  # noqa: F841
 
         print("✅ Tool classes can be instantiated")
         return True
@@ -143,7 +143,7 @@ if __name__ == "__main__":
         if test_func():
             passed += 1
 
-    print(f"\n--- Test Results ---")
+    print("\n--- Test Results ---")
     print(f"Passed: {passed}/{total}")
 
     if passed == total:

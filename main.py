@@ -4,9 +4,6 @@ HTML to Markdown Converter - Dify Plugin
 Main entry point for the plugin
 """
 
-import os
-import sys
-
 from dify_plugin import DifyPlugin
 
 from html_markdown_converter import HtmlMarkdownConverterProvider
