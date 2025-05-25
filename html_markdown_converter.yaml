@@ -1,0 +1,23 @@
+identity:
+  author: Jake
+  name: html_markdown_converter
+  label:
+    en_US: HTML to Markdown Converter
+    zh_Hans: HTML转Markdown转换器
+  description:
+    en_US: Convert HTML content to markdown using different conversion libraries
+    zh_Hans: 使用不同转换库将HTML内容转换为Markdown
+  icon: converter_icon.svg
+  tags:
+    - utilities
+    - conversion
+    - markdown
+
+credentials_for_provider: {} # No credentials needed
+
+tools:
+  - tools/html_to_markdown.yaml
+
+extra:
+  python:
+    source: html_markdown_converter.py
