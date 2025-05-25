@@ -1,12 +1,12 @@
 version: 0.1.0
 type: "plugin"
-author: "Jake"
-name: "html-to-markdown"
+author: "jake"
+name: "html_to_markdown"
 label:
   en_US: "HTML to Markdown Converter"
   zh_Hans: "HTML转Markdown转换器"
 created_at: "2024-12-21T12:00:00Z"
-icon: "_assets/icon.svg"
+icon: "icon.svg"
 description:
   en_US: "Convert HTML content to markdown using different conversion methods (Trafilatura, Markdownify, html2text, Pandoc)"
   zh_Hans: "使用不同转换方法将HTML内容转换为Markdown (Trafilatura, Markdownify, html2text, Pandoc)"

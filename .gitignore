@@ -159,6 +159,15 @@ logs/
 # Dify plugin specific
 plugin.zip
 *.tar.gz
+*.difypkg
+tools/dify-cli
+dify-cli-latest
+temp-daemon-repo/
+temp_analysis/
+
+# Test files (development only)
+test_*.py
+debug-*.py
 
 # Node modules (if any frontend dependencies)
 node_modules/

@@ -1,5 +1,5 @@
 identity:
-  author: Jake
+  author: jake
   name: html_markdown_converter
   label:
     en_US: HTML to Markdown Converter
@@ -10,8 +10,7 @@ identity:
   icon: icon.svg
   tags:
     - utilities
-    - conversion
-    - markdown
+    - productivity
 
 credentials_for_provider: {} # No credentials needed
 

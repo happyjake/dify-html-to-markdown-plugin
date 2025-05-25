@@ -1,0 +1,57 @@
+# Dify Plugin Ignore File
+# Files and directories to exclude from the .difypkg package
+
+# Development tools
+test_*.py
+debug-*.py
+test-ci-locally.sh
+dify-cli-latest
+tools/dify-cli*
+
+# Temporary files
+temp_analysis/
+temp-daemon-repo/
+*.tmp
+*.temp
+*.bak
+
+# Git and version control
+.git/
+.gitignore
+.difyignore
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+
+# Development dependencies
+requirements-dev.txt
+.pytest_cache/
+.coverage
+
+# Documentation and extra files
+README.md
+DEPLOYMENT.md
+Makefile
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# macOS
+.DS_Store
+._*
+
+# Logs
+*.log 
+test-env/*

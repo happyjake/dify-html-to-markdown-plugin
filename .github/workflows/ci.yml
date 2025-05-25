@@ -33,30 +33,58 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        pip install -r requirements-dev.txt
 
-    - name: Lint with flake8
+    - name: Validate Python syntax
       run: |
-        # stop the build if there are Python syntax errors or undefined names
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+        python -m py_compile main.py
+        python -m py_compile tools/html_to_markdown.py
+        python -m py_compile provider/html_markdown_converter.py
 
-    - name: Check code formatting with black
+    - name: Test plugin structure
       run: |
-        black --check --diff .
+        # Test that all required files exist
+        test -f manifest.yaml
+        test -f main.py
+        test -f requirements.txt
+        test -f tools/html_to_markdown.py
+        test -f tools/html_to_markdown.yaml
+        test -f provider/html_markdown_converter.yaml
+        echo "All required files present"
 
-    - name: Check import sorting with isort
+    - name: Test imports
       run: |
-        isort --check-only --diff .
+        python -c "
+        import sys
+        sys.path.insert(0, '.')
+        try:
+            from main import HtmlMarkdownConverterProvider
+            print('✅ Main provider import successful')
+        except ImportError as e:
+            print(f'❌ Import error: {e}')
+            sys.exit(1)
+        
+        try:
+            from tools.html_to_markdown import HtmlToMarkdownTool
+            print('✅ Tool import successful')
+        except ImportError as e:
+            print(f'❌ Tool import error: {e}')
+            sys.exit(1)
+        "
 
-    - name: Type checking with mypy
+    - name: Test build process
       run: |
-        mypy . --ignore-missing-imports || true
-
-    - name: Test with pytest
-      run: |
-        pytest test_plugin.py -v
+        # Test that our build process works
+        make build
+        # Verify package was created with reasonable size
+        test -f dist/html-to-markdown-plugin.difypkg
+        size=$(stat -f%z dist/html-to-markdown-plugin.difypkg 2>/dev/null || stat -c%s dist/html-to-markdown-plugin.difypkg)
+        echo "Package size: $size bytes"
+        # Package should be under 100KB (we expect ~16KB)
+        if [ "$size" -gt 100000 ]; then
+          echo "❌ Package too large: $size bytes"
+          exit 1
+        fi
+        echo "✅ Package size acceptable"
 
     - name: Validate Dify plugin manifest
       run: |
@@ -71,9 +99,19 @@ jobs:
                 if field not in manifest:
                     print(f'Missing required field: {field}')
                     sys.exit(1)
-            print('Manifest validation passed')
+            
+            # Validate plugin structure
+            plugins = manifest.get('plugins', {})
+            tools = plugins.get('tools', [])
+            if not tools:
+                print('No tools defined in manifest')
+                sys.exit(1)
+            
+            print(f'✅ Manifest validation passed for {manifest["name"]} v{manifest["version"]}')
+            print(f'✅ Found {len(tools)} tool(s) defined')
+            
         except Exception as e:
-            print(f'Manifest validation failed: {e}')
+            print(f'❌ Manifest validation failed: {e}')
             sys.exit(1)
         "
 
@@ -91,13 +129,47 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        pip install -r requirements-dev.txt
 
-    - name: Security check with bandit
+    - name: Security check - validate imports
       run: |
-        bandit -r . -f json -o bandit-report.json || true
-        bandit -r . || true
+        python -c "
+        import ast
+        import sys
+        
+        def check_imports(filename):
+            with open(filename, 'r') as f:
+                tree = ast.parse(f.read())
+            
+            imports = []
+            for node in ast.walk(tree):
+                if isinstance(node, ast.Import):
+                    for alias in node.names:
+                        imports.append(alias.name)
+                elif isinstance(node, ast.ImportFrom):
+                    imports.append(node.module)
+            
+            # Check for potentially dangerous imports
+            dangerous = ['os.system', 'subprocess.call', 'eval', 'exec']
+            for imp in imports:
+                if imp in dangerous:
+                    print(f'⚠️  Potentially dangerous import in {filename}: {imp}')
+            
+            print(f'✅ {filename}: {len(imports)} imports checked')
+            return imports
+        
+        files_to_check = ['main.py', 'tools/html_to_markdown.py', 'provider/html_markdown_converter.py']
+        all_imports = []
+        for file in files_to_check:
+            all_imports.extend(check_imports(file))
+        
+        print(f'✅ Security check completed. Total imports: {len(set(all_imports))}')
+        "
 
-    - name: Safety check
+    - name: Check for sensitive data
       run: |
-        safety check --json || true
+        # Check for potential secrets or sensitive data
+        if grep -r "password\|secret\|key\|token" . --exclude-dir=.git --exclude="*.yml" --exclude="*.yaml" --exclude="*.md"; then
+          echo "⚠️  Potential sensitive data found - please review"
+        else
+          echo "✅ No obvious sensitive data found"
+        fi

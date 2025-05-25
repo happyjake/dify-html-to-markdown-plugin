@@ -7,9 +7,9 @@ identity:
 
 description:
   human:
-    en_US: Convert HTML content to markdown format using your choice of conversion method (Trafilatura, Markdownify, html2text, or Pandoc)
-    zh_Hans: 使用您选择的转换方法将HTML内容转换为Markdown格式 (Trafilatura, Markdownify, html2text, 或 Pandoc)
-  llm: Convert HTML content to markdown format. Choose conversion method - trafilatura (best for content extraction), markdownify (preserves styling), html2text (clean output), or pandoc (universal converter).
+    en_US: Convert HTML content to markdown format using your choice of conversion method (Trafilatura, Markdownify, html2text, Pandoc, BeautifulSoup, or Simple)
+    zh_Hans: 使用您选择的转换方法将HTML内容转换为Markdown格式 (Trafilatura, Markdownify, html2text, Pandoc, BeautifulSoup, 或 Simple)
+  llm: Convert HTML content to markdown format. Choose conversion method - trafilatura (best for content extraction), markdownify (preserves styling), html2text (clean output), pandoc (universal converter), beautifulsoup (custom parsing), or simple (regex-based fallback).
 
 parameters:
   - name: html_content
@@ -34,7 +34,7 @@ parameters:
     human_description:
       en_US: Choose the conversion library to use
       zh_Hans: 选择要使用的转换库
-    llm_description: The conversion method to use - trafilatura (best for content extraction), markdownify (preserves styling), html2text (clean output), or pandoc (universal converter)
+    llm_description: The conversion method to use - trafilatura (best for content extraction), markdownify (preserves styling), html2text (clean output), pandoc (universal converter), beautifulsoup (custom parsing), or simple (regex-based fallback)
     form: form
     options:
       - value: trafilatura
@@ -53,6 +53,14 @@ parameters:
         label:
           en_US: Pandoc (Universal converter)
           zh_Hans: Pandoc (通用转换器)
+      - value: beautifulsoup
+        label:
+          en_US: BeautifulSoup (Custom parsing)
+          zh_Hans: BeautifulSoup (自定义解析)
+      - value: simple
+        label:
+          en_US: Simple (Regex-based fallback)
+          zh_Hans: Simple (基于正则表达式的后备)
 
 extra:
   python:
