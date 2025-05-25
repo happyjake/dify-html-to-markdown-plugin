@@ -1,7 +1,10 @@
+# HTML to Markdown conversion dependencies
 trafilatura>=1.12.0
 markdownify>=0.13.1
 html2text>=2024.2.26
 pypandoc>=1.13
 beautifulsoup4>=4.12.0
-dify-plugin>=0.1.0
-lxml>=5.1.0 
+lxml>=5.1.0
+
+# Dify plugin framework (requires Python >= 3.11)
+dify-plugin>=0.1.0 
