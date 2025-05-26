@@ -2,7 +2,7 @@
 # Build, test, and package the Dify plugin
 
 PLUGIN_NAME = html-to-markdown-plugin
-PLUGIN_VERSION = 0.1.0
+PLUGIN_VERSION = 0.1.1
 PACKAGE_NAME = $(PLUGIN_NAME).difypkg
 
 # Python 3.12+ required for compatibility

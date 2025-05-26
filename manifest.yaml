@@ -1,4 +1,4 @@
-version: 0.1.0
+version: 0.1.1
 type: "plugin"
 author: "jake"
 name: "html_to_markdown"
@@ -22,7 +22,7 @@ plugins:
   tools:
     - "provider/html_markdown_converter.yaml"
 meta:
-  version: 0.1.0
+  version: 0.1.1
   arch:
     - "amd64"
     - "arm64"
