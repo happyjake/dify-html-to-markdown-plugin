@@ -20,6 +20,8 @@ jobs:
     
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Fetch full history for changelog generation
 
     - name: Set up Python 3.12
       uses: actions/setup-python@v4
@@ -59,8 +61,8 @@ jobs:
         # Check package size (should be around 16KB)
         du -h dist/*.difypkg
 
-    - name: Get version
-      id: version
+    - name: Get version and package info
+      id: info
       run: |
         if [[ $GITHUB_REF == refs/tags/* ]]; then
           VERSION=${GITHUB_REF#refs/tags/}
@@ -69,46 +71,125 @@ jobs:
         fi
         echo "version=$VERSION" >> $GITHUB_OUTPUT
         echo "Version: $VERSION"
+        
+        # Get package size
+        PACKAGE_SIZE=$(du -h dist/*.difypkg | cut -f1)
+        echo "package_size=$PACKAGE_SIZE" >> $GITHUB_OUTPUT
+        echo "Package size: $PACKAGE_SIZE"
+        
+        # Get manifest info
+        PLUGIN_VERSION=$(python -c "import yaml; manifest = yaml.safe_load(open('manifest.yaml')); print(manifest['version'])")
+        PLUGIN_NAME=$(python -c "import yaml; manifest = yaml.safe_load(open('manifest.yaml')); print(manifest['name'])")
+        echo "plugin_version=$PLUGIN_VERSION" >> $GITHUB_OUTPUT
+        echo "plugin_name=$PLUGIN_NAME" >> $GITHUB_OUTPUT
+
+    - name: Generate changelog
+      id: changelog
+      run: |
+        # Get the previous tag
+        PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+        echo "prev_tag=$PREV_TAG" >> $GITHUB_OUTPUT
+        
+        if [ -z "$PREV_TAG" ]; then
+          echo "This is the first release"
+          CHANGELOG="🎉 **Initial Release**"
+        else
+          echo "Generating changelog from $PREV_TAG to HEAD"
+          
+          # Generate changelog from commits
+          CHANGELOG="## 📋 Changes Since $PREV_TAG"$'\n'$'\n'
+          
+          # Get commits with categories
+          FEATURES=$(git log --pretty=format:"- %s" $PREV_TAG..HEAD --grep="feat:" --grep="feature:" | head -10)
+          FIXES=$(git log --pretty=format:"- %s" $PREV_TAG..HEAD --grep="fix:" --grep="bugfix:" | head -10)
+          IMPROVEMENTS=$(git log --pretty=format:"- %s" $PREV_TAG..HEAD --grep="refactor:" --grep="perf:" --grep="improve:" | head -10)
+          DOCS=$(git log --pretty=format:"- %s" $PREV_TAG..HEAD --grep="docs:" --grep="doc:" | head -10)
+          CHORES=$(git log --pretty=format:"- %s" $PREV_TAG..HEAD --grep="chore:" --grep="ci:" --grep="build:" | head -10)
+          
+          if [ ! -z "$FEATURES" ]; then
+            CHANGELOG="$CHANGELOG"$'\n'"### ✨ New Features"$'\n'"$FEATURES"$'\n'
+          fi
+          
+          if [ ! -z "$FIXES" ]; then
+            CHANGELOG="$CHANGELOG"$'\n'"### 🐛 Bug Fixes"$'\n'"$FIXES"$'\n'
+          fi
+          
+          if [ ! -z "$IMPROVEMENTS" ]; then
+            CHANGELOG="$CHANGELOG"$'\n'"### 🔧 Improvements"$'\n'"$IMPROVEMENTS"$'\n'
+          fi
+          
+          if [ ! -z "$DOCS" ]; then
+            CHANGELOG="$CHANGELOG"$'\n'"### 📚 Documentation"$'\n'"$DOCS"$'\n'
+          fi
+          
+          if [ ! -z "$CHORES" ]; then
+            CHANGELOG="$CHANGELOG"$'\n'"### 🏗️ Build & CI"$'\n'"$CHORES"$'\n'
+          fi
+          
+          # If no categorized commits, show recent commits
+          if [ -z "$FEATURES$FIXES$IMPROVEMENTS$DOCS$CHORES" ]; then
+            RECENT_COMMITS=$(git log --pretty=format:"- %s" $PREV_TAG..HEAD | head -5)
+            if [ ! -z "$RECENT_COMMITS" ]; then
+              CHANGELOG="$CHANGELOG"$'\n'"### 📝 Recent Changes"$'\n'"$RECENT_COMMITS"$'\n'
+            fi
+          fi
+        fi
+        
+        # Save changelog to environment variable and step output
+        echo "changelog<<EOF" >> $GITHUB_OUTPUT
+        echo "$CHANGELOG" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+        
+        echo "Generated changelog:"
+        echo "$CHANGELOG"
 
     - name: Create Release
       uses: softprops/action-gh-release@v1
       if: startsWith(github.ref, 'refs/tags/')
       with:
-        tag_name: ${{ steps.version.outputs.version }}
-        name: Release ${{ steps.version.outputs.version }}
+        tag_name: ${{ steps.info.outputs.version }}
+        name: Release ${{ steps.info.outputs.version }}
         body: |
-          ## What's Changed
+          # 🔌 Dify HTML to Markdown Converter Plugin ${{ steps.info.outputs.version }}
           
-          Dify HTML to Markdown Converter Plugin release ${{ steps.version.outputs.version }}
+          **Plugin Version**: `${{ steps.info.outputs.plugin_name }}` v${{ steps.info.outputs.plugin_version }}  
+          **Package Size**: ${{ steps.info.outputs.package_size }} (optimized from original 16MB)
           
-          ### Features
-          - Convert HTML content to Markdown using 6 conversion methods:
-            - **Trafilatura**: Best for content extraction from web pages
-            - **Markdownify**: Preserves HTML styling and formatting 
-            - **html2text**: Clean, readable markdown output
-            - **Pandoc**: Universal document converter with advanced features
-            - **BeautifulSoup**: Custom parsing with fine-grained control
-            - **Simple**: Regex-based fallback for basic conversion
+          ${{ steps.changelog.outputs.changelog }}
           
-          ### Output Format
-          The plugin now returns data through Dify's standard output variables:
-          - **`json`**: Structured object containing `markdown`, `conversion_info`, and `title` fields
+          ## 🛠️ Available Conversion Methods
+          
+          | Method | Best For | Output Quality |
+          |--------|----------|----------------|
+          | **Trafilatura** | Web content extraction | ⭐⭐⭐⭐⭐ |
+          | **Markdownify** | Preserving HTML styling | ⭐⭐⭐⭐ |
+          | **html2text** | Clean, readable output | ⭐⭐⭐⭐ |
+          | **Pandoc** | Universal conversion | ⭐⭐⭐⭐⭐ |
+          | **BeautifulSoup** | Custom parsing control | ⭐⭐⭐ |
+          | **Simple** | Basic fallback | ⭐⭐ |
+          
+          ## 📤 Output Variables
+          
+          The plugin returns data through Dify's standard output variables:
+          - **`json`**: Structured object with `markdown`, `conversion_info`, and `title` fields
           - **`text`**: Formatted text output for direct display
           
-          ### Usage
-          1. Access individual fields via `json.markdown`, `json.conversion_info`, `json.title`
-          2. Use `text` output for formatted display
-          3. Choose conversion method based on your content type and quality requirements
+          **Usage**: Access individual fields via `json.markdown`, `json.conversion_info`, `json.title`
           
-          ### Package Size
-          Optimized package size: ~16KB (99.9% reduction from original 16MB)
+          ## 📦 Installation
           
-          ### Installation
-          Download the `.difypkg` file and install it in your Dify instance through the plugin management interface.
+          1. Download the `.difypkg` file below
+          2. Install it in your Dify instance through the plugin management interface
+          3. The plugin will be available as "HTML to Markdown" in your tools
           
-          **Full Changelog**: https://github.com/${{ github.repository }}/commits/${{ steps.version.outputs.version }}
+          ## 🔗 Links
+          
+          - **Repository**: https://github.com/${{ github.repository }}
+          - **Issues**: https://github.com/${{ github.repository }}/issues
+          - **Full Changelog**: https://github.com/${{ github.repository }}/compare/${{ steps.changelog.outputs.prev_tag }}...${{ steps.info.outputs.version }}
         draft: false
         prerelease: false
+        generate_release_notes: true
         files: |
           dist/html-to-markdown-plugin.difypkg
 
