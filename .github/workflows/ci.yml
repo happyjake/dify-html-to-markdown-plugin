@@ -106,6 +106,15 @@ jobs:
         print('✅ Import and syntax tests completed successfully')
         "
 
+    - name: Install Dify CLI
+      run: |
+        # Install Dify CLI for building packages
+        curl -L https://github.com/langgenius/dify-plugin-daemon/releases/latest/download/dify-plugin-linux-amd64 -o dify
+        chmod +x dify
+        sudo mv dify /usr/local/bin/
+        # Verify installation
+        dify version
+
     - name: Test build process
       run: |
         # Test that our build process works
