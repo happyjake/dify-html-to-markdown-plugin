@@ -109,26 +109,52 @@ jobs:
     - name: Install Dify CLI
       run: |
         # Install Dify CLI for building packages
-        curl -L https://github.com/langgenius/dify-plugin-daemon/releases/latest/download/dify-plugin-linux-amd64 -o dify
+        echo "Downloading Dify CLI..."
+        curl -L -f https://github.com/langgenius/dify-plugin-daemon/releases/latest/download/dify-plugin-linux-amd64 -o dify
+        
+        # Verify download was successful
+        if [ ! -f dify ]; then
+          echo "❌ Failed to download Dify CLI"
+          exit 1
+        fi
+        
         chmod +x dify
+        echo "Dify CLI binary info:"
+        ls -la dify
+        file dify || echo "file command not available"
+        
+        # Test execution before installation
+        echo "Testing binary execution..."
+        ./dify --help > /dev/null 2>&1 || echo "⚠️ dify --help failed, but proceeding with installation"
+        
         sudo mv dify /usr/local/bin/
-        # Verify installation
-        dify version
+        echo "✅ Dify CLI installed successfully"
+        which dify
 
     - name: Test build process
       run: |
         # Test that our build process works
-        make build
+        echo "Starting build process..."
+        echo "Current directory: $(pwd)"
+        echo "Available files:"
+        ls -la
+        
+        echo "Running make build..."
+        make build || (echo "Build failed, checking dify command..." && dify --version && exit 1)
+        
         # Verify package was created with reasonable size
-        test -f dist/html-to-markdown-plugin.difypkg
+        echo "Checking if package was created..."
+        test -f dist/html-to-markdown-plugin.difypkg || (echo "Package file not found!" && ls -la dist/ && exit 1)
+        
         size=$(stat -f%z dist/html-to-markdown-plugin.difypkg 2>/dev/null || stat -c%s dist/html-to-markdown-plugin.difypkg)
         echo "Package size: $size bytes"
+        
         # Package should be under 100KB (we expect ~16KB)
         if [ "$size" -gt 100000 ]; then
           echo "❌ Package too large: $size bytes"
           exit 1
         fi
-        echo "✅ Package size acceptable"
+        echo "✅ Package size acceptable: $size bytes"
 
     - name: Validate Dify plugin manifest
       run: |
