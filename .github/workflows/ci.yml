@@ -167,7 +167,7 @@ jobs:
             required_fields = ['version', 'type', 'name', 'plugins']
             for field in required_fields:
                 if field not in manifest:
-                    print(f'Missing required field: {field}')
+                    print('Missing required field: ' + field)
                     sys.exit(1)
             
             # Validate plugin structure
@@ -177,11 +177,11 @@ jobs:
                 print('No tools defined in manifest')
                 sys.exit(1)
             
-            print(f'✅ Manifest validation passed for {manifest["name"]} v{manifest["version"]}')
-            print(f'✅ Found {len(tools)} tool(s) defined')
+            print('✅ Manifest validation passed for ' + manifest['name'] + ' v' + manifest['version'])
+            print('✅ Found ' + str(len(tools)) + ' tool(s) defined')
             
         except Exception as e:
-            print(f'❌ Manifest validation failed: {e}')
+            print('❌ Manifest validation failed: ' + str(e))
             sys.exit(1)
         "
 
